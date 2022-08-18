@@ -11,6 +11,8 @@ class Board {
         this.boardElement.dataset.turn = 1;
         this.putbutton = document.getElementById('put-button');
 
+        this.banned_list = []; // temporary list of banned cells
+
         this.rowElements = []; // element. HTML elements of the rows
         this.cellElements = []; // element. HTML elements of the cells (2D Array)
         for (let i = 0; i < this.rowCount; i++) {
@@ -109,11 +111,12 @@ class Board {
 
     put(row, column) {
         this.selected = null;
-        console.log(row, column)
         this.setCell(row, column, this.gameObj.turn);
         this.gameObj.put_list.push({ row: row, column: column });
         this.gameObj.check(row, column);
         this.gameObj.count++;
+
+        this.banned_list = [];
     }
 
     putbuttonclickListener() {
@@ -150,6 +153,14 @@ class Board {
 
         this.draw();
     }
+
+    check_five(row, column, turn, allow_6) {
+        console.log('checking five of ', row, column, turn, allow_6);
+    }
+
+    ban_cells(ban_3_3, ban_4_3, ban_4_4) {
+        console.log(ban_3_3, ban_4_3, ban_4_4)
+    }
 }
 
 class Game {
@@ -159,6 +170,16 @@ class Game {
         this.gameOver = false;
         this.put_list = []; // list of put positions.
         this.count = 0;
+        this.rule = {
+            black_3_3: false,
+            black_4_3: true,
+            black_4_4: false,
+            black_6: false,
+            white_3_3: true,
+            white_4_3: true,
+            white_4_4: true,
+            white_6: true
+        };
     }
 
     undo(count = 1) {
@@ -174,6 +195,28 @@ class Game {
     check(row, column) {
 
         // TODO : check some stuffs
+
+        // check five
+        if (this.turn == 1) {
+            const fiveCount = this.board.check_five(row, column, this.turn, this.rule.black_6);
+            if (fiveCount) {
+                this.gameOver = true;
+                this.winner = this.turn;
+            }
+
+            this.board.ban_cells(!this.rule.white_3_3, !this.rule.white_4_3, !this.rule.white_4_4);
+        } else if (this.turn == 2) {
+            const fiveCount = this.board.check_five(row, column, this.turn, this.rule.white_6);
+            if (fiveCount) {
+                this.gameOver = true;
+                this.winner = this.turn;
+            }
+
+
+            this.board.ban_cells(!this.rule.black_3_3, !this.rule.black_4_3, !this.rule.black_4_4);
+
+        }
+
 
         this.changeTurn();
         return true;
