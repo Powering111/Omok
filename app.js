@@ -145,6 +145,8 @@ class Board {
         for (let i = 0; i < put_list.length; i++) {
             this.board[put_list[i].row][put_list[i].column] = i % 2 + 1;
         }
+        this.selected = null;
+        this.lastSelected = put_list[put_list.length - 1];
 
         this.draw();
     }
@@ -159,7 +161,7 @@ class Game {
         this.count = 0;
     }
 
-    undo(count) {
+    undo(count = 1) {
         for (let i = 0; i < count; i++) {
             this.put_list.pop();
             this.count--;
