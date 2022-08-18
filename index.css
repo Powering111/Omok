@@ -1,26 +1,46 @@
-#container{
+#container {
     width: 100%;
     height: 100%;
-    display:flex;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
 }
 
-#title{
-    margin:10px;
+#title {
+    margin: 10px;
 }
-#board{
-    display:inline-block;
+
+#board {
+    display: inline-block;
     background-color: #e6a441;
-    background:url('board.png') no-repeat;
-    border:1px solid black;
-    position:relative;
-    background-size:cover;
-    padding:6px;
+    background: url('board.png') no-repeat;
+    border: 1px solid black;
+    position: relative;
+    background-size: cover;
+    padding: 6px;
 }
-.board-row{
+
+#put-button {
+    color: white;
+    font-size: 30px;
+    margin: 10px;
+    padding: 20px 100px;
+    background-color: #ade2e9;
+    border: 2px solid blue;
+    border-radius: 2px;
+    transition: background-color 0.3s;
+}
+
+#put-button:hover {
+    background-color: #66dbd2;
+}
+
+#put-button:active {
+    background-color: #ddf8ff;
+}
+
+.board-row {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -29,37 +49,55 @@
     align-items: center;
 }
 
-.board-cell{
-    color:black;
+.board-cell {
+    color: black;
+    position: relative;
 }
-.cell-content{
+
+.cell-content {
     user-select: none;
     pointer-events: none;
-    width:30px;
-    height:30px;
-    margin:3px;
-    border-radius:20px;
+    width: 30px;
+    height: 30px;
+    margin: 3px;
+    border-radius: 20px;
     transition: background-color 0.5s;
 }
 
-
-
-.cell-empty > .cell-content{
-    background-color:antiquewhite;
+.cell-empty>.cell-content {
+    background-color: antiquewhite;
     background-color: transparent;
 }
-.cell-black > .cell-content{
+
+.cell-black>.cell-content {
     background-color: black;
 }
 
-.cell-white > .cell-content{
-    background-color:white;
+.cell-white>.cell-content {
+    background-color: white;
 }
 
-.cell-empty:hover > .cell-content{
-    background-color: rgba(255,255,255,0.1);
+.cell-empty:hover>.cell-content {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.cell-selected{
-    outline:1px solid blue;
+.cell-selected {
+    outline: 1px solid blue;
+}
+
+.cell-lastselected::after {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    top: 15px;
+    left: 15px;
+}
+
+.cell-white.cell-lastselected::after {
+    background-color: black;
+}
+
+.cell-black.cell-lastselected::after {
+    background-color: white;
 }
