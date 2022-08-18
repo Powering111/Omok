@@ -8,6 +8,7 @@ class Board {
         this.gameObj = gameObj;
         this.boardElement = boardElement; // element.
         this.boardElement.innerHTML = ''; // clear the board.
+        this.boardElement.dataset.turn = 1;
         this.putbutton = document.getElementById('put-button');
 
         this.rowElements = []; // element. HTML elements of the rows
@@ -110,7 +111,9 @@ class Board {
         this.selected = null;
         console.log(row, column)
         this.setCell(row, column, this.gameObj.turn);
+        this.gameObj.put_list.push({ row: row, column: column });
         this.gameObj.check(row, column);
+        this.gameObj.count++;
     }
 
     putbuttonclickListener() {
@@ -131,7 +134,20 @@ class Board {
         }
     }
 
+    setWholeBoard(put_list) {
+        //initialize board
+        for (let i = 0; i < this.rowCount; i++) {
+            for (let j = 0; j < this.columnCount; j++) {
+                this.board[i][j] = 0;
+            }
+        }
+        //set board
+        for (let i = 0; i < put_list.length; i++) {
+            this.board[put_list[i].row][put_list[i].column] = i % 2 + 1;
+        }
 
+        this.draw();
+    }
 }
 
 class Game {
@@ -139,9 +155,19 @@ class Game {
         this.board = new Board(this, boardElement, 15, 15);
         this.turn = 1; // 1 : black, 2 : white
         this.gameOver = false;
+        this.put_list = []; // list of put positions.
+        this.count = 0;
     }
 
-
+    undo(count) {
+        for (let i = 0; i < count; i++) {
+            this.put_list.pop();
+            this.count--;
+        }
+        this.board.setWholeBoard(this.put_list);
+        this.turn = this.count % 2 + 1;
+        this.board.boardElement.dataset.turn = this.turn;
+    }
 
     check(row, column) {
 
@@ -157,7 +183,9 @@ class Game {
         } else {
             this.turn = 1;
         }
+        this.board.boardElement.dataset.turn = this.turn;
     }
+
 
 }
 

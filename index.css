@@ -61,7 +61,6 @@
     height: 30px;
     margin: 3px;
     border-radius: 20px;
-    transition: background-color 0.5s;
 }
 
 .cell-empty>.cell-content {
@@ -70,32 +69,41 @@
 }
 
 .cell-black>.cell-content {
-    background-color: black;
+    background: radial-gradient(#303030, black);
 }
 
 .cell-white>.cell-content {
-    background-color: white;
+    background: radial-gradient(#dfdfdf, white);
 }
 
-.cell-empty:hover>.cell-content {
+#board[data-turn="2"] .cell-empty:hover>.cell-content,
+#board[data-turn="2"] .cell-selected>.cell-content {
     background-color: rgba(255, 255, 255, 0.623);
 }
 
-.cell-empty:hover>.cell-content {
+#board[data-turn="1"] .cell-empty:hover>.cell-content,
+#board[data-turn="1"] .cell-selected>.cell-content {
     background-color: rgba(14, 12, 12, 0.623);
 }
 
-.cell-selected {
-    outline: 1px solid blue;
+.cell-selected::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 35px;
+    height: 35px;
+    outline: 2px solid rgb(0, 195, 255);
 }
 
 .cell-lastselected::after {
+    content: '';
     position: absolute;
-    display: block;
-    width: 10px;
-    height: 10px;
-    top: 15px;
-    left: 15px;
+    width: 9px;
+    height: 9px;
+    top: 13.5px;
+    left: 13.5px;
 }
 
 .cell-white.cell-lastselected::after {
@@ -104,4 +112,14 @@
 
 .cell-black.cell-lastselected::after {
     background-color: white;
+}
+
+#board[data-turn="1"]~#put-button {
+    background-color: #000000;
+    color: white;
+}
+
+#board[data-turn="2"]~#put-button {
+    background-color: #ffffff;
+    color: black;
 }
