@@ -75,10 +75,10 @@ class Board {
             }
         }
 
-        if ('selected' in this) {
+        if ('selected' in this && this.selected != null) {
             this.cellElements[this.selected.row][this.selected.column].classList.add('cell-selected');
         }
-        if ('lastSelected' in this) {
+        if ('lastSelected' in this && this.lastSelected != null) {
             this.cellElements[this.lastSelected.row][this.lastSelected.column].classList.add('cell-lastselected');
         }
     }
@@ -108,6 +108,7 @@ class Board {
 
     put(row, column) {
         this.selected = null;
+        console.log(row, column)
         this.setCell(row, column, this.gameObj.turn);
         this.gameObj.check(row, column);
     }
