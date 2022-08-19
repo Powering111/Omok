@@ -84,6 +84,10 @@ class Board {
         if ('lastSelected' in this && this.lastSelected != null) {
             this.cellElements[this.lastSelected.row][this.lastSelected.column].classList.add('cell-lastselected');
         }
+
+        for(let banned_cell of this.banned_list){
+            this.cellElements[banned_cell.row][banned_cell.column].classList.add('cell-banned');
+        }
     }
 
     getCell(row, column) {
@@ -108,15 +112,23 @@ class Board {
         }
     }
 
+    isBanned(row, column) {
+        for (let banned_cell of this.banned_list) {
+            if (banned_cell.row == row && banned_cell.column == column) {
+                return true;
+            }
+        }
+        return false;
+    }
     put(row, column) {
-        if (this.board[row][column] == 0 && !this.banned_list.includes({ row: row, column: column })) {
+        if (this.board[row][column] == 0 && !this.isBanned(row,column)) {
             this.selected = null;
+            this.banned_list = [];
             this.setCell(row, column, this.gameObj.turn);
             this.gameObj.put_list.push({ row: row, column: column });
             this.gameObj.check(row, column);
             this.gameObj.count++;
-
-            this.banned_list = [];
+            
         }
     }
 
