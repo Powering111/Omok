@@ -19,6 +19,7 @@
     position: relative;
     background-size: cover;
     padding: 6px;
+    cursor: crosshair;
 }
 
 #put-button {
@@ -30,6 +31,7 @@
     border: 2px solid blue;
     border-radius: 2px;
     transition: background-color 0.3s;
+    cursor: pointer;
 }
 
 #put-button:hover {
@@ -90,11 +92,12 @@
     content: '';
     display: block;
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 35px;
-    height: 35px;
-    outline: 2px solid rgb(0, 195, 255);
+    top: 3px;
+    left: 3px;
+    width: 30px;
+    height: 30px;
+    border-radius: 20px;
+    outline: 2px dotted rgb(255, 0, 0);
 }
 
 .cell-lastselected::after {

@@ -91,15 +91,14 @@ class Board {
     }
 
     setCell(row, column, value) {
-        if (this.board[row][column] == 0) {
-            this.lastSelected = { row: row, column: column };
 
-            this.board[row][column] = value;
+        this.lastSelected = { row: row, column: column };
 
-            this.animatePut(this.cellElements[row][column]);
+        this.board[row][column] = value;
 
-            this.draw();
-        }
+        this.animatePut(this.cellElements[row][column]);
+
+        this.draw();
     }
 
     select(row, column) {
@@ -110,13 +109,15 @@ class Board {
     }
 
     put(row, column) {
-        this.selected = null;
-        this.setCell(row, column, this.gameObj.turn);
-        this.gameObj.put_list.push({ row: row, column: column });
-        this.gameObj.check(row, column);
-        this.gameObj.count++;
+        if (this.board[row][column] == 0 && !this.banned_list.includes({ row: row, column: column })) {
+            this.selected = null;
+            this.setCell(row, column, this.gameObj.turn);
+            this.gameObj.put_list.push({ row: row, column: column });
+            this.gameObj.check(row, column);
+            this.gameObj.count++;
 
-        this.banned_list = [];
+            this.banned_list = [];
+        }
     }
 
     putbuttonclickListener() {
