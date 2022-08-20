@@ -1,3 +1,11 @@
+const directions=[
+    {row:1,column:0},
+    {row:0,column:1},
+    {row:1,column:1},
+    {row:1,column:-1}
+];
+
+
 class Board {
     constructor(gameObj, boardElement, rowCount, columnCount) {
         this.board = []; // data. 0 : empty, 1 : Black, 2 : White
@@ -166,9 +174,31 @@ class Board {
 
         this.draw();
     }
-
+    inBoard(row, column){
+        return row>=0&&row<this.rowCount&&column>=0&&column<this.columnCount;
+    }
     check_five(row, column, turn, allow_6) {
         console.log('checking five of ', row, column, turn, allow_6);
+        for(let direction of directions){
+            let cnt=-1;
+            let r=row;
+            let c=column;
+            while(this.inBoard(r,c)&&this.board[r][c]==turn){
+                r+=direction.row;
+                c+=direction.column;
+                cnt++;
+            }
+
+            r=row;
+            c=column;
+            while(this.inBoard(r,c)&&this.board[r][c]==turn){
+                r-=direction.row;
+                c-=direction.column;
+                cnt++;
+            }
+            if(cnt==5) return true;
+            if(allow_6 && cnt>=6) return true;
+        }
     }
 
     ban_cells(ban_3_3, ban_4_3, ban_4_4) {
@@ -211,18 +241,16 @@ class Game {
 
         // check five
         if (this.turn == 1) {
-            const fiveCount = this.board.check_five(row, column, this.turn, this.rule.black_6);
-            if (fiveCount) {
-                this.gameOver = true;
-                this.winner = this.turn;
+            const five = this.board.check_five(row, column, this.turn, this.rule.black_6);
+            if (five) {
+                this.finishGame(this.turn);
             }
 
             this.board.ban_cells(!this.rule.white_3_3, !this.rule.white_4_3, !this.rule.white_4_4);
         } else if (this.turn == 2) {
-            const fiveCount = this.board.check_five(row, column, this.turn, this.rule.white_6);
-            if (fiveCount) {
-                this.gameOver = true;
-                this.winner = this.turn;
+            const five = this.board.check_five(row, column, this.turn, this.rule.white_6);
+            if (five) {
+                this.finishGame(this.turn);
             }
 
 
@@ -244,7 +272,14 @@ class Game {
         this.board.boardElement.dataset.turn = this.turn;
     }
 
-
+    finishGame(){
+        
+        this.gameOver = true;
+        this.winner = this.turn;
+        console.log(`${this.winner} wins!`);
+        document.getElementById('winner').innerHTML=`${this.winner==1?'흑돌':'백돌'} 승리!`;
+        document.getElementById('winner').className=`winner-${this.winner==1?'black':'white'}`;
+    }
 }
 
 const game = new Game(document.getElementById('board'));

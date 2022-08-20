@@ -39,6 +39,30 @@
     background-color: #ddf8ff;
 }
 
+#winner{
+    display:none;
+    position:fixed;
+    top:200px;
+    left:0px;
+    width:100%;
+    padding:50px 0px 50px 0px;
+    border:4px inset;
+    background-color:#66dbd2;
+    font-size:50px;
+    text-align:center;
+}
+#winner.winner-black{
+    display:block;
+    background-color:black;
+    border-color:black;
+    color:white;
+}
+#winner.winner-white{
+    display:block;
+    background-color:white;
+    border-color:white;
+    color:black;
+}
 .board-row {
     width: 100%;
     display: flex;
