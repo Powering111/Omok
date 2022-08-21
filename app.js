@@ -494,8 +494,8 @@ class userInterface {
         if ('selected' in this && this.selected != null) {
             this.cellElements[this.selected.row][this.selected.column].classList.add('cell-selected');
         }
-        if ('lastSelected' in this && this.gameOBj.lastSelected != null) {
-            this.cellElements[this.gameObj.lastSelected.row][this.gameObj.lastSelected.column].classList.add('cell-lastselected');
+        if ('lastPut' in this.gameObj && this.gameObj.lastPut != null) {
+            this.cellElements[this.gameObj.lastPut.row][this.gameObj.lastPut.column].classList.add('cell-lastPut');
         }
 
         for (let banned_cell of this.gameObj.board.banned_list) {

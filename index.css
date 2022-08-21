@@ -155,7 +155,7 @@
     outline: 2px dotted rgb(255, 0, 0);
 }
 
-.cell-lastselected::after {
+.cell-lastPut::after {
     content: '';
     position: absolute;
     width: 9px;
@@ -164,11 +164,11 @@
     left: 13.5px;
 }
 
-.cell-white.cell-lastselected::after {
+.cell-white.cell-lastPut::after {
     background-color: black;
 }
 
-.cell-black.cell-lastselected::after {
+.cell-black.cell-lastPut::after {
     background-color: white;
 }
 
