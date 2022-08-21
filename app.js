@@ -9,6 +9,7 @@ const directions = [
 class Board {
     constructor(gameObj, rowCount, columnCount) {
         this.board = []; // data. 0 : empty, 1 : Black, 2 : White
+
         // count starts from 0.
         this.rowCount = rowCount;
         this.columnCount = columnCount;
@@ -23,6 +24,7 @@ class Board {
             }
         }
 
+        this.temp_board = JSON.parse(JSON.stringify(this.board));
     }
 
     isBanned(row, column) {
@@ -36,9 +38,8 @@ class Board {
 
     // put a stone on the board
     put(row, column) {
-        this.banned_list = [];
-
         this.board[row][column] = this.gameObj.turn;
+        this.temp_board[row][column] = this.gameObj.turn;
     }
 
 
@@ -56,40 +57,278 @@ class Board {
         }
         this.selected = null;
         this.lastSelected = put_list[put_list.length - 1];
-
-        this.draw();
+        this.temp_board = JSON.parse(JSON.stringify(this.board));
     }
 
+    // checks if the cell is in the board
     inBoard(row, column) {
         return row >= 0 && row < this.rowCount && column >= 0 && column < this.columnCount;
     }
 
-    check_five(row, column, turn, allow_6) {
-        console.log('checking five of ', row, column, turn, allow_6);
+    check_6(row, column, turn) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
         for (let direction of directions) {
-            let cnt = -1;
-            let r = row;
-            let c = column;
-            while (this.inBoard(r, c) && this.board[r][c] == turn) {
-                r += direction.row;
-                c += direction.column;
-                cnt++;
+            if (this.check_six_onedir(row, column, turn, direction)) {
+                return true;
             }
+        }
+    }
+    check_six_onedir(row, column, turn, direction) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
 
-            r = row;
-            c = column;
-            while (this.inBoard(r, c) && this.board[r][c] == turn) {
-                r -= direction.row;
-                c -= direction.column;
-                cnt++;
+        this.temp_board[row][column] = turn;
+        let cnt = -1;
+        let r = row;
+        let c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r += direction.row;
+            c += direction.column;
+            cnt++;
+        }
+
+        r = row;
+        c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r -= direction.row;
+            c -= direction.column;
+            cnt++;
+        }
+        this.temp_board[row][column] = 0;
+
+        if (cnt >= 6) return true;
+    }
+
+    // check five if you put a stone on the board
+    check_five(row, column, turn, allow) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+
+        for (let direction of directions) {
+            if (this.check_five_onedir(row, column, turn, allow, direction)) {
+                return true;
             }
-            if (cnt == 5) return true;
-            if (allow_6 && cnt >= 6) return true;
+        }
+    }
+    check_five_onedir(row, column, turn, allow, direction) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+
+        this.temp_board[row][column] = turn;
+        let cnt = -1;
+        let r = row;
+        let c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r += direction.row;
+            c += direction.column;
+            cnt++;
+        }
+
+        r = row;
+        c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r -= direction.row;
+            c -= direction.column;
+            cnt++;
+        }
+        this.temp_board[row][column] = 0;
+
+        if (cnt == 5) return true;
+        if (allow.allow_6 && cnt >= 6) return true;
+
+    }
+
+    // check four if you put a stone on the board
+    check_four(row, column, turn, allow) {
+
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+        for (let direction of directions) {
+            if (this.check_four_onedir(row, column, turn, allow, direction)) {
+                return true;
+            }
+        }
+    }
+    check_four_onedir(row, column, turn, allow, direction) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+        this.temp_board[row][column] = turn;
+
+        let blank1, blank2; // position of blank cells
+
+        let cnt = -1;
+        let r = row;
+        let c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r += direction.row;
+            c += direction.column;
+            cnt++;
+        }
+        blank1 = { row: r, column: c };
+
+        r = row;
+        c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r -= direction.row;
+            c -= direction.column;
+            cnt++;
+        }
+        blank2 = { row: r, column: c };
+
+
+        if (this.check_five_onedir(blank1.row, blank1.column, turn, allow, direction)) {
+            this.temp_board[row][column] = 0;
+            return true;
+        }
+        if (this.check_five_onedir(blank2.row, blank2.column, turn, allow, direction)) {
+            this.temp_board[row][column] = 0;
+            return true;
+        }
+
+    }
+
+    check_open_four_onedir(row, column, turn, allow, direction) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+        this.temp_board[row][column] = turn;
+
+        let blank1, blank2; // position of blank cells
+
+        let cnt = -1;
+        let r = row;
+        let c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r += direction.row;
+            c += direction.column;
+            cnt++;
+        }
+        blank1 = { row: r, column: c };
+
+        r = row;
+        c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r -= direction.row;
+            c -= direction.column;
+            cnt++;
+        }
+        blank2 = { row: r, column: c };
+
+        if (cnt == 4 &&
+            this.check_five_onedir(blank1.row, blank1.column, turn, allow, direction) &&
+            this.check_five_onedir(blank2.row, blank2.column, turn, allow, direction)) {
+            this.temp_board[row][column] = 0;
+            return true;
         }
     }
 
-    ban_cells(ban_3_3, ban_4_3, ban_4_4) {
-        console.log(ban_3_3, ban_4_3, ban_4_4)
+
+    check_three(row, column, turn, allow) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+        let cnt = 0;
+        for (let direction of directions) {
+            if (this.check_three_onedir(row, column, turn, allow, direction)) {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+    check_three_onedir(row, column, turn, allow, direction) {
+        if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
+            return false;
+        }
+        this.temp_board[row][column] = turn;
+        let blank1, blank2; // position of blank cells
+
+        let cnt = -1;
+        let r = row;
+        let c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r += direction.row;
+            c += direction.column;
+            cnt++;
+        }
+        blank1 = { row: r, column: c };
+
+        r = row;
+        c = column;
+        while (this.inBoard(r, c) && this.temp_board[r][c] == turn) {
+            r -= direction.row;
+            c -= direction.column;
+            cnt++;
+        }
+        blank2 = { row: r, column: c };
+        if (this.check_open_four_onedir(blank1.row, blank1.column, turn, allow, direction) &&
+            !this.check_banned(blank1.row, blank1.column, turn, allow)) {
+            this.temp_board[row][column] = 0;
+            return true;
+        }
+        if (this.check_open_four_onedir(blank2.row, blank2.column, turn, allow, direction) &&
+            !this.check_banned(blank1.row, blank1.column, turn, allow)) {
+            this.temp_board[row][column] = 0;
+            return true;
+        }
+    }
+
+    check_3_3(row, column, turn, allow) {
+        if (this.check_three(row, column, turn, allow) >= 2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    check_4_4(row, column, turn, allow) {
+        if (this.check_four(row, column, turn, allow) >= 2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    check_4_3(row, column, turn, allow) {
+        if (this.check_four(row, column, turn, allow) >= 1 &&
+            this.check_three(row, column, turn, allow)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    check_banned(row, column, turn, allow) {
+        for (let banned_cell of this.banned_list) {
+            if (banned_cell.row == row && banned_cell.column == column) {
+                return true;
+            }
+        }
+        if ((!allow.allow_3_3 && this.check_3_3(row, column, turn, allow)) ||
+            (!allow.allow_4_3 && this.check_4_3(row, column, turn, allow)) ||
+            (!allow.allow_4_4 && this.check_4_4(row, column, turn, allow)) ||
+            (!allow.allow_6 && this.check_6(row, column, turn, allow))) {
+            return true;
+        }
+        return false;
+    }
+    ban_cells(allow, turn) {
+
+        this.banned_list = [];
+        for (let i = 0; i < this.rowCount; i++) {
+            for (let j = 0; j < this.columnCount; j++) {
+                if (this.board[i][j] == 0) {
+                    if (this.check_banned(i, j, turn, allow)) {
+                        this.banned_list.push({ row: i, column: j });
+                    }
+                }
+            }
+        }
+        //this.banned_list.push({ row: 0, column: 0 });
     }
 }
 
@@ -118,20 +357,7 @@ class Game {
         this.board.setWholeBoard(this.put_list);
         this.turn = this.count % 2 + 1;
         this.UI.updateTurn();
-    }
-
-    check(row, column) {
-
-        // check five
-        const five = this.board.check_five(row, column, this.turn, this.rule.allow_6[this.turn]);
-        if (five) {
-            this.finishGame(this.turn);
-            return;
-        }
-        this.board.ban_cells(!this.rule.allow_3_3[this.turn], !this.rule.allow_4_3[this.turn], !this.rule.allow_4_4[this.turn]);
-        this.changeTurn();
-
-
+        this.UI.draw();
     }
 
     changeTurn() {
@@ -149,15 +375,28 @@ class Game {
         this.UI.finishGame(this.winner);
     }
     put(row, column) {
-        if (this.board.board[row][column] == 0 && !this.board.isBanned(row, column)) {
+        if (this.board.check_five(row, column, this.turn, this.rule[this.turn])) {
             this.board.put(row, column);
             this.count++;
 
             this.put_list.push({ row: row, column: column });
             this.lastPut = { row: row, column: column };
 
-            this.check(row, column);
+            // this.board.ban_cells(this.rule[this.turn], this.turn);
+            //this.changeTurn();
+            this.UI.put(row, column);
 
+            this.finishGame(this.turn);
+        } else if (this.board.board[row][column] == 0 && !this.board.isBanned(row, column)) {
+
+            this.board.put(row, column);
+            this.count++;
+
+            this.put_list.push({ row: row, column: column });
+            this.lastPut = { row: row, column: column };
+
+            this.board.ban_cells(this.rule[this.turn], this.turn);
+            this.changeTurn();
             this.UI.put(row, column);
         }
     }
@@ -298,20 +537,16 @@ class userInterface {
 }
 
 const game = new Game(document.getElementById('board'), 15, 15, {
-    allow_3_3: {
-        1: false,
-        2: true
+    1: {
+        allow_3_3: false,
+        allow_4_3: true,
+        allow_4_4: false,
+        allow_6: false
     },
-    allow_4_3: {
-        1: true,
-        2: true
-    },
-    allow_4_4: {
-        1: false,
-        2: true
-    },
-    allow_6: {
-        1: false,
-        2: true
+    2: {
+        allow_3_3: true,
+        allow_4_3: true,
+        allow_4_4: true,
+        allow_6: true
     }
 });
