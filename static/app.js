@@ -1,52 +1,11 @@
-const express = require('express');
-const app = express();
-const SocketIO = require('socket.io');
-
-const path = require('path');
-
-const port = 80;
-app.set('view engine', 'pug');
-app.use('/static',express.static(path.join(__dirname, 'static')));
-
-app.get('/',(req,res)=>{
-    res.render('lobby');
-});
-app.get('/match', (req, res) => {
-    res.render('match');
-});
-
-const server = app.listen(port, ()=>{
-    console.log(`Server is running on port ${port}`);
-});
-const io = SocketIO(server, {path: '/socket.io'});
-
-
-let room_num = 1;
-const match_queue = [];
-const match_room = {};
-const rules = {
-    renju: {
-        1: {
-            allow_3_3: false,
-            allow_4_3: true,
-            allow_4_4: false,
-            allow_6: false
-        },
-        2: {
-            allow_3_3: true,
-            allow_4_3: true,
-            allow_4_4: true,
-            allow_6: true
-        }
-    }
-};
-
 const directions = [
     { row: 1, column: 0 },
     { row: 0, column: 1 },
     { row: 1, column: 1 },
     { row: 1, column: -1 }
 ];
+
+
 class Board {
     constructor(gameObj, rowCount, columnCount) {
         this.board = []; // data. 0 : empty, 1 : Black, 2 : White
@@ -384,12 +343,15 @@ class Board {
         //this.banned_list.push({ row: 0, column: 0 });
     }
 }
+
 class Game {
-    constructor(rowCount, columnCount, rule) {
+    constructor(boardElement, rowCount, columnCount, rule, myTurn) {
         this.rowCount = rowCount;
         this.columnCount = columnCount;
 
         this.board = new Board(this, 15, 15);
+        this.myTurn = myTurn;
+        this.UI = new userInterface(this, boardElement, myTurn);
 
         this.turn = 1; // 1 : black, 2 : white
         this.gameOver = false;
@@ -412,6 +374,8 @@ class Game {
         }
         this.board.setWholeBoard(this.put_list);
         this.turn = this.count % 2 + 1;
+        this.UI.updateTurn();
+        this.UI.draw();
     }
 
     changeTurn() {
@@ -420,11 +384,13 @@ class Game {
         } else {
             this.turn = 1;
         }
+        this.UI.updateTurn(this.turn);
     }
 
     finishGame() {
         this.gameOver = true;
         this.winner = this.turn;
+        this.UI.finishGame(this.winner);
     }
     put(row, column) {
         if (this.board.check_five(row, column, this.turn, this.rule[this.turn])) {
@@ -434,6 +400,7 @@ class Game {
             this.put_list.push({ row: row, column: column });
             this.lastPut = { row: row, column: column };
 
+            this.UI.put(row, column);
 
             this.finishGame(this.turn, this.gameOverReason.omok);
         } else if (this.board.board[row][column] == 0) {
@@ -448,98 +415,158 @@ class Game {
                 this.finishGame(this.turn, this.gameOverReason.banned);
             }
             this.board.ban_cells(this.rule[this.turn], this.turn);
-
+            this.UI.put(row, column);
 
             if(this.count>=this.columnCount*this.rowCount){
                 this.finishGame(this.turn, this.gameOverReason.draw);
             }
         }
     }
+
+
+
 }
 
+class userInterface {
+    constructor(gameObj, boardElement, myTurn) {
+        this.gameObj = gameObj;
+        this.boardElement = boardElement;
+        this.myTurn = myTurn;
 
+        this.boardElement.innerHTML = ''; // clear the board.
+        this.boardElement.dataset.turn = 1;
+        this.putbutton = document.getElementById('put-button');
 
-io.on('connection', (socket)=>{
-    console.log('New user connected');
-    socket.emit('message','Hello!');
-    socket.on('disconnecting',()=>{
-        console.log('user disconnecting');
-        if(socket.opponent){
-            socket.opponent.emit('leave');
-            socket.opponent.opponent=null;
-            socket.opponent = null;
-        }
-    });
-    socket.on('disconnect',()=>{
-    });
+        this.rowElements = []; // element. HTML elements of the rows
+        this.cellElements = []; // element. HTML elements of the cells (2D Array)
+        for (let i = 0; i < this.gameObj.rowCount; i++) {
+            this.rowElements.push(document.createElement("div"));
+            this.rowElements[i].classList.add('board-row');
+            this.cellElements.push([]);
+            for (let j = 0; j < this.gameObj.columnCount; j++) {
+                this.cellElements[i][j] = document.createElement('div'); // create element
+                this.cellElements[i][j].classList.add('board-cell');
+                this.cellElements[i][j].classList.add('cell-empty');
+                this.cellElements[i][j].setAttribute('data-row', i);
+                this.cellElements[i][j].setAttribute('data-column', j);
 
-    socket.on('message',(data)=>{
-        console.log(data);
-    })
+                const cellContentElement = document.createElement('div');
+                cellContentElement.classList.add('cell-content');
+                this.cellElements[i][j].appendChild(cellContentElement);
+                this.rowElements[i].appendChild(this.cellElements[i][j]);
 
-    socket.on('match',(data)=>{
-        if(data && data.name){
-            console.log(data);
-            socket.userinfo = {
-                name: data.name
-            };
-            // add socket to match queue
-            match_queue.push(socket);
-            // if there is another user in the queue, match them
-            if(match_queue.length>1){
-                const player1 = match_queue.shift();
-                const player2 = match_queue.shift();
-
-                player1.opponent = player2;
-                player2.opponent = player1;
-                player1.room_num = room_num;
-                player2.room_num = room_num;
-                match_room[room_num]= new Game(15, 15, rules.renju);
-                room_num++;
-                if(Math.random()>=0.5){
-                    player1.turn = 1;
-                    player2.turn = 2;
-                }
-                else{
-                    player1.turn = 2;
-                    player2.turn = 1;
-                }
-                player1.emit('match',{
-                    opponent:player2.userinfo,
-                    rule: rules.renju,
-                    turn: player1.turn
-                });
-                player2.emit('match',{
-                    opponent:player1.userinfo,
-                    rule: rules.renju,
-                    turn: player2.turn
-                });
             }
+            this.boardElement.appendChild(this.rowElements[i]);
         }
-    });
 
-    socket.on('put',(data)=>{
-        console.log("put!!!")
+        this.boardElement.addEventListener('mousedown', (event) => { this.boardclickListener(event) });
+        this.putbutton.addEventListener('mousedown', (event) => { this.putbuttonclickListener() })
 
-        if('opponent' in socket && 'room_num' in socket && socket.opponent && socket.room_num){
-            console.log("put!!!")
+        document.addEventListener('keydown',(event)=>{
+            if(event.key==" "){
+                this.putbuttonclickListener();
+                event.preventDefault();
+            }
+        })
+    }
 
-            if(match_room[socket.room_num]){
-                console.log("put!!!")
+    animatePut(elem) {
+        const putAnimation = [{
+                transform: 'scale(1.4)',
+                opacity: 0
+            },
+            {
+                transform: 'scale(1.3)',
+                opacity: 0.8
+            }, {
+                transform: 'scale(1)',
+                opacity: 1
+            }
 
-                if(data && data.row && data.column){
-                    console.log("put!!!")
-                    if(match_room[socket.room_num].turn == socket.turn){
-                        const put_data = {
-                            row: data.row, 
-                            column: data.column
-                        };
-                        match_room[socket.room_num].put(data.row, data.column);
-                        socket.opponent.emit('put',put_data);
-                    }
+        ]
+        const putTiming = {
+            duration: 300,
+            iterations: 1
+        }
+        elem.animate(putAnimation, putTiming);
+    }
+
+    draw() {
+        for (let i = 0; i < this.gameObj.rowCount; i++) {
+            for (let j = 0; j < this.gameObj.columnCount; j++) {
+                if (this.gameObj.board.board[i][j] == 1) { // black cell
+                    this.cellElements[i][j].className = 'board-cell cell-black';
+                } else if (this.gameObj.board.board[i][j] == 2) { // white cell
+                    this.cellElements[i][j].className = 'board-cell cell-white';
+                } else if (this.gameObj.board.board[i][j] == 3) {
+                    this.cellElements[i][j].className = 'board-cell cell-black cell-lastselected';
+                } else {
+                    this.cellElements[i][j].className = 'board-cell cell-empty';
                 }
             }
         }
-    })
 
-})
+        if ('selected' in this && this.selected != null) {
+            this.cellElements[this.selected.row][this.selected.column].classList.add('cell-selected');
+        }
+        if ('lastPut' in this.gameObj && this.gameObj.lastPut != null) {
+            this.cellElements[this.gameObj.lastPut.row][this.gameObj.lastPut.column].classList.add('cell-lastPut');
+        }
+        if(this.gameObj.turn == this.myTurn){
+            for (let banned_cell of this.gameObj.board.banned_list) {
+                this.cellElements[banned_cell.row][banned_cell.column].classList.add('cell-banned');
+            }
+        }
+    }
+
+    updateTurn(turn) {
+        this.boardElement.dataset.turn = turn;
+    }
+
+    select(row, column) {
+        if (this.gameObj.board.board[row][column] == 0) {
+            this.selected = { row: row, column: column };
+            this.draw();
+        }
+    }
+    put(row, column) {
+        this.animatePut(this.cellElements[row][column]);
+        this.selected = null;
+        this.draw();
+    }
+    putbuttonclickListener() {
+        if(this.gameObj.turn == this.myTurn){
+            if ('selected' in this && this.selected != null) {
+                send_put(this.selected.row, this.selected.column);
+                this.gameObj.put(this.selected.row, this.selected.column);
+            }
+        }
+    }
+
+    boardclickListener(event) {
+        if (this.gameObj.gameOver) {
+            return;
+        }
+        if (!event.target.classList.contains('board-cell')) {
+            return;
+        }
+        if(this.gameObj.turn == this.myTurn){
+
+            let row = Number(event.target.dataset.row);
+            let column = Number(event.target.dataset.column);
+
+            if (row != null && column != null && this.gameObj.board.board[row][column] == 0) {
+                this.select(row, column);
+            }
+        }
+    }
+
+    finishGame(winner) {
+        this.selected = null;
+        this.draw();
+        this.boardElement.dataset.turn = '';
+        document.getElementById('winner').innerHTML = `${winner==1?'흑돌':'백돌'} 승리!`;
+        document.getElementById('winner').className = `winner-${winner==1?'black':'white'}`;
+    }
+}
+

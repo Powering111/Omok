@@ -1,0 +1,29 @@
+{
+  "name": "omok",
+  "version": "1.0.0",
+  "description": "omok(gomoku) multiplayer program",
+  "main": "app.js",
+  "scripts": {
+    "test": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Powering111/Omok.git"
+  },
+  "keywords": [
+    "omok",
+    "gomoku"
+  ],
+  "author": "Juntae Jeong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Powering111/Omok/issues"
+  },
+  "homepage": "https://github.com/Powering111/Omok#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "pug": "^3.0.2",
+    "socket.io": "^4.5.1"
+  }
+}

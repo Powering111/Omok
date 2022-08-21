@@ -1,0 +1,29 @@
+#container{
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+
+#match-button{
+    position:fixed;
+    bottom:-15px;
+    left:50%;
+    transform: translateX(-50%);
+    padding:20px;
+    background-color: #45e6f2;
+    font-size:30px;
+    border-radius:10px 10px 0px 0px;
+    color:black;
+    text-decoration:none;
+    transition: background-color 0.3s, bottom 0.3s;
+}
+
+#match-button:hover{
+    background-color: #2db7e6;
+    bottom:0px;
+}
+
+label{
+    margin-right:10px;
+}
