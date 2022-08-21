@@ -1,7 +1,7 @@
 #container {
     width: 100%;
     height: 100%;
-    text-align:center;
+    text-align: center;
 }
 
 #title {
@@ -39,30 +39,38 @@
     background-color: #ddf8ff;
 }
 
-#winner{
-    display:none;
-    position:fixed;
-    top:200px;
-    left:0px;
-    width:100%;
-    padding:50px 0px 50px 0px;
-    border:4px inset;
-    background-color:#66dbd2;
-    font-size:50px;
-    text-align:center;
+#winner {
+    display: none;
+    position: fixed;
+    top: 200px;
+    left: 0px;
+    width: 100%;
+    padding: 50px 0px 50px 0px;
+    font-size: 50px;
+    text-align: center;
+    transition: background-color 0.2s;
 }
-#winner.winner-black{
-    display:block;
-    background-color:black;
-    border-color:black;
-    color:white;
+
+#winner.winner-black {
+    display: block;
+    background-color: #00000087;
+    color: white;
 }
-#winner.winner-white{
-    display:block;
-    background-color:white;
-    border-color:white;
-    color:black;
+
+#winner.winner-black:hover {
+    background-color: #0000009e;
 }
+
+#winner.winner-white {
+    display: block;
+    background-color: #ffffff87;
+    color: black;
+}
+
+#winner.winner-white:hover {
+    background-color: #ffffff9e;
+}
+
 .board-row {
     width: 100%;
     display: flex;
@@ -109,25 +117,29 @@
     background-color: rgba(14, 12, 12, 0.623);
 }
 
-.cell-empty.cell-banned>.cell-content{
+.cell-empty.cell-banned>.cell-content {
     outline: 2px solid red;
 }
-.cell-empty.cell-banned>.cell-content::after, .cell-empty.cell-banned>.cell-content::before {
-    position:absolute;
-    display:block;
-    content:'';
-    width:2px;
-    height:30px;
-    background-color:red;
-    font-size:30px;
-    top:3px;
-    left:17px;
-}
-.cell-empty.cell-banned>.cell-content::after{
-    transform:rotate(45deg);
-}
+
+.cell-empty.cell-banned>.cell-content::after,
 .cell-empty.cell-banned>.cell-content::before {
-    transform:rotate(-45deg);
+    position: absolute;
+    display: block;
+    content: '';
+    width: 2px;
+    height: 30px;
+    background-color: red;
+    font-size: 30px;
+    top: 3px;
+    left: 17px;
+}
+
+.cell-empty.cell-banned>.cell-content::after {
+    transform: rotate(45deg);
+}
+
+.cell-empty.cell-banned>.cell-content::before {
+    transform: rotate(-45deg);
 }
 
 .cell-selected::after {
