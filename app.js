@@ -113,6 +113,7 @@ class Board {
                 return true;
             }
         }
+        return false;
     }
     check_five_onedir(row, column, turn, allow, direction) {
         if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
@@ -140,7 +141,7 @@ class Board {
 
         if (cnt == 5) return true;
         if (allow.allow_6 && cnt >= 6) return true;
-
+        return false;
     }
 
     // check four if you put a stone on the board
@@ -149,11 +150,13 @@ class Board {
         if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
             return false;
         }
+        let cnt = 0;
         for (let direction of directions) {
             if (this.check_four_onedir(row, column, turn, allow, direction)) {
-                return true;
+                cnt++;
             }
         }
+        return cnt;
     }
     check_four_onedir(row, column, turn, allow, direction) {
         if (!this.inBoard(row, column) || this.temp_board[row][column] != 0) {
@@ -191,6 +194,8 @@ class Board {
             this.temp_board[row][column] = 0;
             return true;
         }
+        this.temp_board[row][column] = 0;
+        return false;
 
     }
 
@@ -226,6 +231,9 @@ class Board {
             this.check_five_onedir(blank2.row, blank2.column, turn, allow, direction)) {
             this.temp_board[row][column] = 0;
             return true;
+        } else {
+            this.temp_board[row][column] = 0;
+            return false;
         }
     }
 
@@ -277,6 +285,10 @@ class Board {
             this.temp_board[row][column] = 0;
             return true;
         }
+
+        this.temp_board[row][column] = 0;
+
+        return false;
     }
 
     check_3_3(row, column, turn, allow) {
@@ -395,8 +407,8 @@ class Game {
             this.put_list.push({ row: row, column: column });
             this.lastPut = { row: row, column: column };
 
-            this.board.ban_cells(this.rule[this.turn], this.turn);
             this.changeTurn();
+            this.board.ban_cells(this.rule[this.turn], this.turn);
             this.UI.put(row, column);
         }
     }
