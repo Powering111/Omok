@@ -354,6 +354,11 @@ class Game {
 
         this.turn = 1; // 1 : black, 2 : white
         this.gameOver = false;
+        this.gameOverReason = {
+            omok: 0,
+            draw: 1,
+            banned: 2
+        }
         this.put_list = []; // list of put positions.
         this.count = 0;
         this.rule = rule;
@@ -394,22 +399,26 @@ class Game {
             this.put_list.push({ row: row, column: column });
             this.lastPut = { row: row, column: column };
 
-            // this.board.ban_cells(this.rule[this.turn], this.turn);
-            //this.changeTurn();
             this.UI.put(row, column);
 
-            this.finishGame(this.turn);
-        } else if (this.board.board[row][column] == 0 && !this.board.isBanned(row, column)) {
+            this.finishGame(this.turn, this.gameOverReason.omok);
+        } else if (this.board.board[row][column] == 0) {
 
             this.board.put(row, column);
             this.count++;
 
             this.put_list.push({ row: row, column: column });
             this.lastPut = { row: row, column: column };
-
             this.changeTurn();
+            if(this.board.isBanned(row, column)){
+                this.finishGame(this.turn, this.gameOverReason.banned);
+            }
             this.board.ban_cells(this.rule[this.turn], this.turn);
             this.UI.put(row, column);
+
+            if(this.count>=this.columnCount*this.rowCount){
+                this.finishGame(this.turn, this.gameOverReason.draw);
+            }
         }
     }
 
@@ -419,7 +428,6 @@ class Game {
 
 class userInterface {
     constructor(gameObj, boardElement) {
-
         this.gameObj = gameObj;
         this.boardElement = boardElement;
 
@@ -452,7 +460,12 @@ class userInterface {
         this.boardElement.addEventListener('mousedown', (event) => { this.boardclickListener(event) });
         this.putbutton.addEventListener('mousedown', (event) => { this.putbuttonclickListener() })
 
-
+        document.addEventListener('keydown',(event)=>{
+            if(event.key==" "){
+                this.putbuttonclickListener();
+                event.preventDefault();
+            }
+        })
     }
 
     animatePut(elem) {
