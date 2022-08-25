@@ -19,7 +19,11 @@ socket.on('leave',(data)=>{
 
 });
 
+
 let game;
+socket.on('board-sync',(data)=>{
+    game.setWholeBoard(data);
+})
 // when matched to another user
 socket.on('match',(data)=>{
     console.log(data);
