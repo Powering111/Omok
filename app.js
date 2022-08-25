@@ -22,8 +22,8 @@ const io = SocketIO(server, {path: '/socket.io'});
 
 
 let room_num = 1;
-const match_queue = [];
-const match_room = {};
+let match_queue = [];
+let match_room = {};
 const rules = {
     renju: {
         1: {
@@ -468,7 +468,13 @@ io.on('connection', (socket)=>{
             socket.opponent.emit('leave');
             socket.opponent.opponent=null;
             socket.opponent = null;
+            delete match_room[socket.room_num];
         }
+
+        match_queue = match_queue.filter((elem)=>{
+            return elem!=socket;
+        });
+        console.log(match_queue.length);
     });
     socket.on('disconnect',()=>{
     });
