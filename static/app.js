@@ -372,13 +372,7 @@ class Game {
             this.put_list.pop();
             this.count--;
         }
-        this.setWholeBoard(this.put_list);
-    }
-    
-    setWholeBoard(put_list){
-        this.put_list = put_list;
-        this.board.setWholeBoard(put_list);
-        this.count = put_list.length;
+        this.board.setWholeBoard(this.put_list);
         this.turn = this.count % 2 + 1;
         this.UI.updateTurn();
         this.UI.draw();

@@ -24,7 +24,6 @@ const io = SocketIO(server, {path: '/socket.io'});
 let room_num = 1;
 let match_queue = [];
 let match_room = {};
-let intervals = {};
 const rules = {
     renju: {
         1: {
@@ -464,26 +463,20 @@ io.on('connection', (socket)=>{
     console.log('New user connected');
     socket.emit('message','Hello!');
     socket.on('disconnecting',()=>{
-    });
-    socket.on('disconnect',()=>{
-        console.log('user disconnected');
+        console.log('user disconnecting');
         if(socket.opponent){
             socket.opponent.emit('leave');
             socket.opponent.opponent=null;
             socket.opponent = null;
             delete match_room[socket.room_num];
         }
-    
+
         match_queue = match_queue.filter((elem)=>{
             return elem!=socket;
         });
         console.log(match_queue.length);
     });
-    socket.on('reconnection',()=>{
-        if(socket.room_num in intervals){
-            clearInterval(intervals[socket.room_num]);
-        }
-        socket.emit('board-sync',match_room[socket.room_num].put_list);
+    socket.on('disconnect',()=>{
     });
 
     socket.on('message',(data)=>{
@@ -532,11 +525,16 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('put',(data)=>{
+        console.log("put!!!")
 
         if('opponent' in socket && 'room_num' in socket && socket.opponent && socket.room_num){
+            console.log("put!!!")
 
             if(match_room[socket.room_num]){
+                console.log("put!!!")
+
                 if(data && data.row && data.column){
+                    console.log("put!!!")
                     if(match_room[socket.room_num].turn == socket.turn){
                         const put_data = {
                             row: data.row, 
