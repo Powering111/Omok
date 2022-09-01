@@ -38,6 +38,10 @@ socket.on('put',(data)=>{
     }
 });
 
+socket.on('board-sync',(data)=>{
+    game.setWholeBoard(data);
+});
+
 function send_put(row, column){
     socket.emit('put',{
         row: row,

@@ -466,9 +466,14 @@ io.on('connection', (socket)=>{
         console.log('user disconnecting');
         if(socket.opponent){
             socket.opponent.emit('leave');
-            socket.opponent.opponent=null;
-            socket.opponent = null;
-            delete match_room[socket.room_num];
+            const opponent = socket.opponent;
+            socket.disconnectTimeout = setTimeout(()=>{
+                opponent.opponent=null;
+                delete match_room[socket.room_num];
+                console.log(match_room);
+                },10000
+            );
+
         }
 
         match_queue = match_queue.filter((elem)=>{
@@ -476,8 +481,12 @@ io.on('connection', (socket)=>{
         });
         console.log(match_queue.length);
     });
-    socket.on('disconnect',()=>{
-    });
+
+    socket.on('reconnect',()=>{
+        console.log("reconnect");
+        clearTimeout(socket.disconnectTimeout);
+        socket.emit('board-sync',match_room[socket.room_num].put_list);
+    })
 
     socket.on('message',(data)=>{
         console.log(data);
